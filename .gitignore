@@ -1,0 +1,6 @@
+*.pkl
+.DS_Store
+.vscode/
+linear_regressor/
+__pycache__/
+nn_classifier/
