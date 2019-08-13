@@ -20,14 +20,14 @@ test_images = test_images.reshape((test_images.shape[0], image_width, image_heig
 
 # Create the model
 model = models.Sequential()
-# Convolution window size 3x3. Depth of layer 32
-model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(image_width, image_height, 1)))
+# Convolution layer. Window size 3x3. Depth of layer 5
+model.add(layers.Conv2D(5, (3, 3), activation='relu', input_shape=(image_width, image_height, 1)))
 model.add(layers.MaxPooling2D((2, 2)))
-# Convolution window size 3x3. Depth of layer 64
-model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+# Convolution layer. Window size 3x3. Depth of layer 10
+model.add(layers.Conv2D(10, (3, 3), activation='relu'))
 model.add(layers.MaxPooling2D((2, 2)))
-# Convolution window size 3x3. Depth of layer 64
-model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+# Convolution layer. Window size 3x3. Depth of layer 10
+model.add(layers.Conv2D(10, (3, 3), activation='relu'))
 
 # Flatten the last convolution layer into a vecor so we can feed this to
 # a regular (dense) neural network layer.
