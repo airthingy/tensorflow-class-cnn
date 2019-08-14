@@ -32,14 +32,13 @@ with tf.Session() as sess:
     output_image_list = sess.run(conv_layer, feed_dict = {X : input_image_list, W : filter_weights})
     print(output_image_list.shape)
 
-# # There was only one input image. So get the first and only
-# # output image
-# output_image = output_images[0]
-# print(output_image.shape)
-# output_image_height = output_image.shape[0]
-# output_image_width = output_image.shape[1]
-# # Reshape the image to get rid of the depth so that matplotlib
-# # can show it.
-# output_image = output_image.reshape((output_image_height, output_image_width))
-# plt.imshow(output_image)
-# plt.show()
+# There was only one input image. So get the first and only
+# output image
+output_image = output_image_list[0]
+output_image_height = output_image.shape[0]
+output_image_width = output_image.shape[1]
+# Reshape the image to get rid of the depth so that matplotlib
+# can show it.
+output_image = output_image.reshape((output_image_height, output_image_width))
+plt.imshow(output_image)
+plt.show()
