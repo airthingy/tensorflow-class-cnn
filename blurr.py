@@ -5,9 +5,11 @@ import numpy as np
 
 input_image = img.imread("halftone.png")
 
-# Add a new dimension for depth (of 1 for grayscale)
 image_height = input_image.shape[0]
 image_width = input_image.shape[1]
+
+# Add a new dimension for depth (of 1 for grayscale).
+# Any CNN layer input data must have depth information.
 image_depth = 1
 
 input_image_with_depth = input_image.reshape((image_height, image_width, image_depth))
@@ -15,6 +17,8 @@ input_image_list = [
     input_image_with_depth
 ]
 
+# Create a convolution layer with depth 1. We will supply both weights
+# and input image. So they are both placeholders.
 conv_layer_depth = 1
 filter_size = 5
 W = tf.placeholder(tf.float32, [filter_size, filter_size, image_depth, conv_layer_depth])
