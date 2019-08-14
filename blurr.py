@@ -3,16 +3,16 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import numpy as np
 
-image = img.imread("halftone.png")
+input_image = img.imread("halftone.png")
 
 # Add a new dimension for depth (of 1 for grayscale)
-image_height = image.shape[0]
-image_width = image.shape[1]
+image_height = input_image.shape[0]
+image_width = input_image.shape[1]
 image_depth = 1
 
-image = image.reshape((image_height, image_width, image_depth))
+input_image_with_depth = input_image.reshape((image_height, image_width, image_depth))
 input_image_list = [
-    image
+    input_image_with_depth
 ]
 
 conv_layer_depth = 1
@@ -30,7 +30,6 @@ filter_weights = np.full((filter_size, filter_size, image_depth, conv_layer_dept
 
 with tf.Session() as sess: 
     output_image_list = sess.run(conv_layer, feed_dict = {X : input_image_list, W : filter_weights})
-    print(output_image_list.shape)
 
 # There was only one input image. So get the first and only
 # output image
@@ -40,5 +39,10 @@ output_image_width = output_image.shape[1]
 # Reshape the image to get rid of the depth so that matplotlib
 # can show it.
 output_image = output_image.reshape((output_image_height, output_image_width))
-plt.imshow(output_image)
+
+# Show before and after images side by side
+_, plots = plt.subplots(1, 2)
+plots[0].imshow(input_image)
+plots[1].imshow(output_image)
+
 plt.show()
