@@ -27,14 +27,16 @@ def build_model(image_height, image_width, image_depth, num_classes):
     K = 40  # first convolutional layer output depth
     L = 20  # second convolutional layer output depth
     M = 10  # third convolutional layer
-    N = 400  # Count of neurons in fully connected layer
+    N = 65  # Count of neurons in fully connected layer
 
     # The model
-    Y1 = conv_util.conv_layer(X, K, 3, 1)
-    Y2 = conv_util.conv_layer(Y1, L, 5, 2)
-    Y3 = conv_util.conv_layer(Y2, M, 5, 2)
-    Y4 = conv_util.fully_connected_layer(Y3, N)
-    logits, Y = conv_util.readout_layer(Y4, num_classes)
+    layer = conv_util.conv_layer(X, K, 3, 1)
+    layer = conv_util.max_pool_layer(layer, 2, 2)
+    layer = conv_util.conv_layer(layer, L, 3, 1)
+    layer = conv_util.max_pool_layer(layer, 2, 2)
+    layer = conv_util.conv_layer(layer, M, 3, 1)
+    layer = conv_util.fully_connected_layer(layer, N)
+    logits, Y = conv_util.readout_layer(layer, num_classes)
 
     optimizer, learning_rate, accuracy = conv_util.create_optimizer(logits, Y, Y_)
 
@@ -50,7 +52,7 @@ def train():
     image_depth = image.shape[2]
 
     #Use the first label to get the number of classes.
-    num_classes = y_train[0].shape[1]
+    num_classes = y_train[0].shape[0]
 
     X, Y_, accuracy, Y, optimizer, learning_rate = build_model(image_height, image_width, image_depth, num_classes)
 
@@ -65,7 +67,9 @@ def train():
         for epoch in range(0, num_epochs):
             for batch in range(0, len(batch_X)):
                 sess.run(optimizer, {X: batch_X[batch], Y_: batch_Y[batch], learning_rate: 0.001})
-                a = sess.run(accuracy, {X: batch_X[batch], Y_: batch_Y[batch]})
-                print("Accuracy:", a)
+
+                if batch % 100 == 0:
+                    a = sess.run(accuracy, {X: batch_X[batch], Y_: batch_Y[batch]})
+                    print("Accuracy:", a)
 
 train()
