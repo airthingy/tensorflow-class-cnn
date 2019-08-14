@@ -2,6 +2,7 @@
 import tensorflow as tf
 import numpy as np
 import conv_util
+import sys
 
 def load_data():
     (x_train, y_train), (x_test, y_test) = tf.compat.v1.keras.datasets.cifar10.load_data()
@@ -22,20 +23,14 @@ def build_model(image_height, image_width, image_depth, num_classes):
     X = tf.placeholder(tf.float32, [None, image_height, image_width, image_depth])
     Y_ = tf.placeholder(tf.float32, [None, num_classes])
 
-    # three convolutional layers with their channel counts, and a
-    # fully connected layer (tha last layer has 10 softmax neurons)
-    K = 7  # first convolutional layer output depth
-    L = 5  # second convolutional layer output depth
-    M = 5  # third convolutional layer
-    N = 35  # Count of neurons in fully connected layer
-
     # The model
-    layer = conv_util.conv_layer(X, K, 3, 1)
+    layer = conv_util.conv_layer(X, 7, 3, 1)
+    layer = conv_util.conv_layer(layer, 15, 3, 1)
     layer = conv_util.max_pool_layer(layer, 3, 3)
-    layer = conv_util.conv_layer(layer, L, 3, 1)
+    layer = conv_util.conv_layer(layer, 7, 3, 1)
     layer = conv_util.max_pool_layer(layer, 3, 3)
-    layer = conv_util.conv_layer(layer, M, 3, 1)
-    layer = conv_util.fully_connected_layer(layer, N)
+    layer = conv_util.conv_layer(layer, 3, 3, 1)
+    layer = conv_util.fully_connected_layer(layer, 512)
     logits, Y = conv_util.readout_layer(layer, num_classes)
 
     optimizer, learning_rate, accuracy = conv_util.create_optimizer(logits, Y, Y_)
@@ -99,4 +94,7 @@ def validate():
         a = sess.run(accuracy, {X: x_test, Y_: y_test})
         print("Accuracy:", a * 100.0, "%")
 
-validate()
+if sys.argv[1] == "--train":
+    train()
+elif sys.argv[1] == "--validate":
+    validate()
