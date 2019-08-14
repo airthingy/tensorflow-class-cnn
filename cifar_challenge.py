@@ -24,13 +24,12 @@ def build_model(image_height, image_width, image_depth, num_classes):
     Y_ = tf.placeholder(tf.float32, [None, num_classes])
 
     # The model
-    layer = conv_util.conv_layer(X, 7, 3, 1)
-    layer = conv_util.conv_layer(layer, 15, 3, 1)
+    layer = conv_util.conv_layer(X, 15, 3, 1)
+    layer = conv_util.max_pool_layer(layer, 3, 3)
+    layer = conv_util.conv_layer(layer, 9, 3, 1)
     layer = conv_util.max_pool_layer(layer, 3, 3)
     layer = conv_util.conv_layer(layer, 7, 3, 1)
-    layer = conv_util.max_pool_layer(layer, 3, 3)
-    layer = conv_util.conv_layer(layer, 3, 3, 1)
-    layer = conv_util.fully_connected_layer(layer, 512)
+    layer = conv_util.fully_connected_layer(layer, 25)
     logits, Y = conv_util.readout_layer(layer, num_classes)
 
     optimizer, learning_rate, accuracy = conv_util.create_optimizer(logits, Y, Y_)
