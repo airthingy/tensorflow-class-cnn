@@ -12,7 +12,10 @@ def conv_layer(input_tensor, depth, filter_size, stride):
     W = weight_variable([filter_size, filter_size, input_depth, depth])
     b = bias_variable([depth])
 
-    return tf.nn.relu(tf.nn.conv2d(input_tensor, W, strides=[1, stride, stride, 1], padding='SAME') + b)
+    convolution_output = tf.nn.conv2d(input_tensor, W, strides=[1, stride, stride, 1], padding='SAME') + b
+
+    #Apply activation function to each pixel of the output
+    return tf.nn.relu(convolution_output)
 
 def max_pool_layer(input_tensor, window_size, stride):
     return tf.nn.max_pool(input_tensor, ksize=[1, window_size, window_size, 1],
