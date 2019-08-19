@@ -54,11 +54,8 @@ def create_optimizer(logits, predictions, labels):
     correct_prediction = tf.equal(tf.argmax(predictions, 1), tf.argmax(labels, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-    # Learning rate
-    lr = tf.placeholder(tf.float32)
-
     # training step, the learning rate is a placeholder
-    graph = tf.train.AdamOptimizer(lr).minimize(cost)
+    graph = tf.train.AdamOptimizer(0.001).minimize(cost)
 
-    return (graph, lr, accuracy)
+    return (graph, accuracy)
 

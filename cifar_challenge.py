@@ -32,9 +32,9 @@ def build_model(image_height, image_width, image_depth, num_classes):
     layer = conv_util.fully_connected_layer(layer, 25)
     logits, Y_hat = conv_util.readout_layer(layer, num_classes)
 
-    optimizer, learning_rate, accuracy = conv_util.create_optimizer(logits, Y_hat, Y)
+    optimizer, accuracy = conv_util.create_optimizer(logits, Y_hat, Y)
 
-    return (X, Y, accuracy, Y_hat, optimizer, learning_rate)
+    return (X, Y, accuracy, Y_hat, optimizer)
 
 def train():
     (x_train, y_train), _ = load_data()
@@ -48,7 +48,7 @@ def train():
     #Use the first label to get the number of classes.
     num_classes = y_train[0].shape[0]
 
-    X, Y, accuracy, Y_hat, optimizer, learning_rate = build_model(image_height, image_width, image_depth, num_classes)
+    X, Y, accuracy, Y_hat, optimizer = build_model(image_height, image_width, image_depth, num_classes)
 
     with tf.Session() as sess: 
         saver = tf.train.Saver()
@@ -62,7 +62,7 @@ def train():
 
         for epoch in range(0, num_epochs):
             for batch in range(0, len(batch_X)):
-                sess.run(optimizer, {X: batch_X[batch], Y: batch_Y[batch], learning_rate: 0.001})
+                sess.run(optimizer, {X: batch_X[batch], Y: batch_Y[batch]})
 
                 if batch % 100 == 0:
                     a = sess.run(accuracy, {X: batch_X[batch], Y: batch_Y[batch]})
@@ -81,7 +81,7 @@ def validate():
     #Use the first label to get the number of classes.
     num_classes = y_test[0].shape[0]
 
-    X, Y, accuracy, Y_hat, optimizer, learning_rate = build_model(image_height, image_width, image_depth, num_classes)
+    X, Y, accuracy, Y_hat, optimizer = build_model(image_height, image_width, image_depth, num_classes)
 
     with tf.Session() as sess: 
         sess.run(tf.global_variables_initializer())
