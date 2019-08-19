@@ -21,12 +21,13 @@ input_image_list = [
 # and input image. So they are both placeholders.
 conv_layer_depth = 1
 filter_size = 5
+
 W = tf.placeholder(tf.float32, [filter_size, filter_size, image_depth, conv_layer_depth])
-X = tf.placeholder(tf.float32, [1, image_height, image_width, image_depth])
+X = tf.placeholder(tf.float32, [None, image_height, image_width, image_depth])
 
 # Shift 2 pixels after each iteration
 stride = 2
-conv_layer = tf.nn.conv2d(X, W, strides=[1, stride, stride, 1], padding='SAME')
+conv_layer = tf.nn.conv2d(X, W, strides=[stride, stride], padding='SAME')
 
 # To blur the image we will average all pixels under the filter
 each_filter_cell_value = 1.0 / (filter_size * filter_size)
@@ -35,8 +36,7 @@ filter_weights = np.full((filter_size, filter_size, image_depth, conv_layer_dept
 with tf.Session() as sess: 
     output_image_list = sess.run(conv_layer, feed_dict = {X : input_image_list, W : filter_weights})
 
-# There was only one input image. So get the first and only
-# output image
+#Grab the first and only output image
 output_image = output_image_list[0]
 output_image_height = output_image.shape[0]
 output_image_width = output_image.shape[1]

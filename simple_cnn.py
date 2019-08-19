@@ -8,15 +8,17 @@ from tensorflow.keras import datasets, layers, models
 
 # train_images and test_images are tensors of dimension m x 28 x 28.
 # Where m is the number of samples. Each image is 28x28 pixels.
-# Images are greyscale and hense has onely one color channel.
+# Images are greyscale and hence has only one color channel.
 
-# For CNN the input tensor must have a depth. We will just reshape the input
-# data to have 1 depth (since its greyscale). For color images the depth will be 3.
 image_width = train_images.shape[1]
 image_height = train_images.shape[2]
 
-train_images = train_images.reshape((train_images.shape[0], image_width, image_height, 1))
-test_images = test_images.reshape((test_images.shape[0], image_width, image_height, 1))
+# For CNN the input tensor must have a depth. We will just reshape the input
+# data to have 1 depth (since its greyscale). For color images the depth will be 3.
+train_images = train_images.reshape(
+    (train_images.shape[0], image_width, image_height, 1))
+test_images = test_images.reshape(
+    (test_images.shape[0], image_width, image_height, 1))
 
 # Create the model
 model = models.Sequential()
