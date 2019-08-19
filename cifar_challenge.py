@@ -21,7 +21,7 @@ def load_data():
 
 def build_model(image_height, image_width, image_depth, num_classes):
     X = tf.placeholder(tf.float32, [None, image_height, image_width, image_depth])
-    Y_ = tf.placeholder(tf.float32, [None, num_classes])
+    Y = tf.placeholder(tf.float32, [None, num_classes])
 
     # The model
     layer = conv_util.conv_layer(X, 15, 3, 1)
@@ -30,11 +30,11 @@ def build_model(image_height, image_width, image_depth, num_classes):
     layer = conv_util.max_pool_layer(layer, 3, 3)
     layer = conv_util.conv_layer(layer, 7, 3, 1)
     layer = conv_util.fully_connected_layer(layer, 25)
-    logits, Y = conv_util.readout_layer(layer, num_classes)
+    logits, Y_hat = conv_util.readout_layer(layer, num_classes)
 
-    optimizer, learning_rate, accuracy = conv_util.create_optimizer(logits, Y, Y_)
+    optimizer, learning_rate, accuracy = conv_util.create_optimizer(logits, Y_hat, Y)
 
-    return (X, Y_, accuracy, Y, optimizer, learning_rate)
+    return (X, Y, accuracy, Y_hat, optimizer, learning_rate)
 
 def train():
     (x_train, y_train), _ = load_data()
@@ -48,7 +48,7 @@ def train():
     #Use the first label to get the number of classes.
     num_classes = y_train[0].shape[0]
 
-    X, Y_, accuracy, Y, optimizer, learning_rate = build_model(image_height, image_width, image_depth, num_classes)
+    X, Y, accuracy, Y_hat, optimizer, learning_rate = build_model(image_height, image_width, image_depth, num_classes)
 
     with tf.Session() as sess: 
         saver = tf.train.Saver()
@@ -62,10 +62,10 @@ def train():
 
         for epoch in range(0, num_epochs):
             for batch in range(0, len(batch_X)):
-                sess.run(optimizer, {X: batch_X[batch], Y_: batch_Y[batch], learning_rate: 0.001})
+                sess.run(optimizer, {X: batch_X[batch], Y: batch_Y[batch], learning_rate: 0.001})
 
                 if batch % 100 == 0:
-                    a = sess.run(accuracy, {X: batch_X[batch], Y_: batch_Y[batch]})
+                    a = sess.run(accuracy, {X: batch_X[batch], Y: batch_Y[batch]})
                     print("Accuracy:", a * 100.0, "%")
                     saver.save(sess, "./model.ckpt")
 
@@ -81,7 +81,7 @@ def validate():
     #Use the first label to get the number of classes.
     num_classes = y_test[0].shape[0]
 
-    X, Y_, accuracy, Y, optimizer, learning_rate = build_model(image_height, image_width, image_depth, num_classes)
+    X, Y, accuracy, Y_hat, optimizer, learning_rate = build_model(image_height, image_width, image_depth, num_classes)
 
     with tf.Session() as sess: 
         sess.run(tf.global_variables_initializer())
@@ -90,7 +90,7 @@ def validate():
         # Load the weights and biases
         saver.restore(sess, "./model.ckpt")
         # predictions = sess.run(Y, {X: x_test})
-        a = sess.run(accuracy, {X: x_test, Y_: y_test})
+        a = sess.run(accuracy, {X: x_test, Y: y_test})
         print("Accuracy:", a * 100.0, "%")
 
 if sys.argv[1] == "--train":

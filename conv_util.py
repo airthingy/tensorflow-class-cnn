@@ -39,14 +39,16 @@ def fully_connected_layer(input_tensor, num_neurons):
 def readout_layer(input_tensor, num_classes):
     W = weight_variable([input_tensor.get_shape()[1].value, num_classes])
     B = bias_variable([num_classes])
-    logits = tf.matmul(input_tensor, W) + B
-    Y = tf.nn.softmax(logits)
 
-    return (logits, Y)
+    #Prediction
+    logits = tf.matmul(input_tensor, W) + B
+    Y_hat = tf.nn.softmax(logits)
+
+    return (logits, Y_hat)
 
 def create_optimizer(logits, predictions, labels):
     cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels)
-    cross_entropy = tf.reduce_mean(cross_entropy) * 100
+    cost = tf.reduce_mean(cross_entropy)
 
     # accuracy of the trained model, between 0 (worst) and 1 (best)
     correct_prediction = tf.equal(tf.argmax(predictions, 1), tf.argmax(labels, 1))
@@ -56,7 +58,7 @@ def create_optimizer(logits, predictions, labels):
     lr = tf.placeholder(tf.float32)
 
     # training step, the learning rate is a placeholder
-    graph = tf.train.AdamOptimizer(lr).minimize(cross_entropy)
+    graph = tf.train.AdamOptimizer(lr).minimize(cost)
 
     return (graph, lr, accuracy)
 
