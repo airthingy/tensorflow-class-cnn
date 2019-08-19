@@ -206,3 +206,22 @@ python3 blurr.py
 ```
 
 Make sure that the output image looks like a blurred version of the input.
+
+## Quiz
+
+Q1. Try setting ``filter_size`` to 10. What difference do you see in the output image and why?
+
+Q2. There's a thin black border around the output image. If you don't see it try setting ``filter_size`` to 10. Why is this border there?
+
+Q3. We need to do convolution on an image with the following setup. How many weight (``W``) parameters will we have for this convolution layer?
+
+- Input image size: 100x100
+- Input image depth 3 for RGB color.
+- Filter size: 5x5
+- Convolution output depth 25.
+
+Answer: 5x5x3x25 = 1875
+
+Q4. Is the number of parameters used by a convolution layer affected by the size of the image?
+
+Answer: No. In fact this is one of the advantages of CNN. We can work on a large sized image with few parameters. It is true that a larger image will require more steps to slide the filter window. Max pooling can be used to reduce the image size.
