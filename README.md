@@ -225,3 +225,193 @@ Answer: 5x5x3x25 = 1875
 Q4. Is the number of parameters used by a convolution layer affected by the size of the image?
 
 Answer: No. In fact this is one of the advantages of CNN. We can work on a large sized image with few parameters. It is true that a larger image will require more steps to slide the filter window. Max pooling can be used to reduce the image size.
+
+# Workshop - Solve CIFAR-10 Challenge
+CIFAR-10 dataset consists of 60000 32x32 colour images in 10 classes. Each image has a depth of 3 for RGB color space. This is a tough challenge and we can only hope to get 60% with a toy model. For more detail go to:
+
+```
+https://www.cs.toronto.edu/~kriz/cifar.html
+```
+
+We will use low level Tensorflow CNN API to develop a Keras like high level interface. This should give you a good idea about the inner workings of a CNN. 
+
+## Build a CNN Highlevel Utility
+A CNN uses these types of layers.
+
+- **Input layer** feeds images. Each sample is a 3D tensor of dimension image_height x image_width x number_of_color_channels.
+- **Convolution layer**. This lays out neurons in a 3D space. It has height, width and depth. It also has several filters each of which as 2D matrix.  Each neuron receives input from every pixel of the previous channel. Each neuron outputs a single pixel value. The net output from this layer also exists in a 3D space. They usually use ``relu()`` activation function. It helps to think of the neurons here as photo receptors like in cornea.
+- **Pooling layer**. This is used to reduce image dimension so that we can work with fewer amounts of data. This speeds up training and prediction. This also outputs data in a 3D space. This does very basic image downsampling mathematics and doesn't use any neurons or activation function.
+- At least one **fully connected layer**. This lays out neurons in a 1D space. This is same as a hidden layer in a normal neural network. For this to receive a 3D input tensor the input must be reshaped to be 1 dimensional. That is called flattening. The neurons use ``relu()`` activation function.
+- A final **readout** or **output layer**. This is designed like the output layer of a regular classification network. Which means, there is one neuron per class. They use a ``softmax()`` activation function.
+
+To save time the code is given to you. You will do a review with the help of the instructor. Copy ``conv_util.py`` from the solution repository to **workshop/cnn**. 
+
+Open ``conv_util.py`` and go through this study.
+
+The ``conv_layer()`` function creates a convolution layer. 
+
+- What is the shape of the weights here? 
+- Why does it have that shape? 
+- Do you realize that the neurons in a channel (depth level) share the same small number of weights and biases. In a regular neural network each neuron has its own weights and biases. What benefit do we get out of this sharing?
+
+The ``max_pool_layer()`` function does pooling (image downsampling or down scaling) by taking the brightest pixel under a window. 
+
+The ``fully_connected_layer()`` function creates a fully connected layer of neurons laid out in a 1D space. 
+
+- How are we flattening the input from 3D to 1D space? 
+- Does the dimension of input after flattening make sense to you?
+- Look at the output of this layer. Does this remind you of a regular neural network layer?
+
+The ``readout_layer()`` function does the actual classification.
+
+- What is the shape of the prediction tensor ``Y_hat``?
+
+The ``create_optimizer()`` function creates cost function and minimizer. Because we are doing classification the cost function uses the cost function of softmax.
+
+## Build the Model
+We will try to solve the CIFAR-10 challenge using this architecture.
+
+- The input will take images of size 32x32x3.
+- Convolution layer #1 will have a depth of 15. Window size 3x3. Stride 1.
+- A max pooling layer. Window size 3x3. 
+- Convolution layer #2 will have a depth of 9. Window size 3x3. Stride 1.
+- A max pooling layer. Window size 3x3.
+- Convolution layer #3 will have a depth of 7. Window size 3x3. Stride 1.
+- A fully connected layer with 25 neurons.
+- Final readout layer with 10 neurons. One for each class.
+
+Create a file called ``cifar_challenge.py``. Add this code.
+
+```python
+import tensorflow as tf
+import numpy as np
+import conv_util
+import sys
+
+def build_model(image_height, image_width, image_depth, num_classes):
+    X = tf.placeholder(tf.float32, [None, image_height, image_width, image_depth])
+    Y = tf.placeholder(tf.float32, [None, num_classes])
+
+    # The model
+    layer = conv_util.conv_layer(X, 15, 3, 1)
+    layer = conv_util.max_pool_layer(layer, 3, 3)
+    layer = conv_util.conv_layer(layer, 9, 3, 1)
+    layer = conv_util.max_pool_layer(layer, 3, 3)
+    layer = conv_util.conv_layer(layer, 7, 3, 1)
+    layer = conv_util.fully_connected_layer(layer, 25)
+    logits, Y_hat = conv_util.readout_layer(layer, num_classes)
+
+    optimizer, accuracy = conv_util.create_optimizer(logits, Y_hat, Y)
+
+    return (X, Y, accuracy, Y_hat, optimizer)
+```
+
+## Load Data
+Add this code to load data.
+
+```
+def load_data():
+    (x_train, y_train), (x_test, y_test) = tf.compat.v1.keras.datasets.cifar10.load_data()
+    
+    #One hot encode label data
+    #CIFAR10 has 10 classes: airplane, automobile, bird, etc.
+    num_classes = 10
+    y_train = tf.keras.utils.to_categorical(y_train, num_classes)
+    y_test = tf.keras.utils.to_categorical(y_test, num_classes)
+
+    return (x_train, y_train), (x_test, y_test)
+```
+
+If there are ``m`` samples then what are the dimensions of ``x_train`` and ``y_train``?
+
+## Do Training
+Add this code. Nothing new here. Except we are using ``np.array_split()`` to create mini-batches of data.
+
+```python
+def train():
+    (x_train, y_train), _ = load_data()
+
+    #Use the first image to get its dimensions
+    image = x_train[0]
+    image_height = image.shape[0]
+    image_width = image.shape[1]
+    image_depth = image.shape[2]
+
+    #Use the first label to get the number of classes.
+    num_classes = y_train[0].shape[0]
+
+    X, Y, accuracy, Y_hat, optimizer = build_model(image_height, image_width, image_depth, num_classes)
+
+    with tf.Session() as sess: 
+        saver = tf.train.Saver()
+
+        sess.run(tf.global_variables_initializer())
+
+        num_epochs = 50
+        batch_size = 150 
+        batch_X = np.array_split(x_train, batch_size)
+        batch_Y = np.array_split(y_train, batch_size)
+
+        for epoch in range(0, num_epochs):
+            for batch in range(0, len(batch_X)):
+                sess.run(optimizer, {X: batch_X[batch], Y: batch_Y[batch]})
+
+                if batch % 100 == 0:
+                    a = sess.run(accuracy, {X: batch_X[batch], Y: batch_Y[batch]})
+                    print("Accuracy:", a * 100.0, "%")
+                    saver.save(sess, "./model.ckpt")
+```
+
+## Do Validation
+Add this code.
+
+```python
+def validate():
+    _, (x_test, y_test) = load_data()
+
+    #Use the first image to get its dimensions
+    image = x_test[0]
+    image_height = image.shape[0]
+    image_width = image.shape[1]
+    image_depth = image.shape[2]
+
+    #Use the first label to get the number of classes.
+    num_classes = y_test[0].shape[0]
+
+    X, Y, accuracy, Y_hat, optimizer = build_model(image_height, image_width, image_depth, num_classes)
+
+    with tf.Session() as sess: 
+        sess.run(tf.global_variables_initializer())
+
+        saver = tf.train.Saver()
+        # Load the weights and biases
+        saver.restore(sess, "./model.ckpt")
+        # predictions = sess.run(Y, {X: x_test})
+        a = sess.run(accuracy, {X: x_test, Y: y_test})
+        print("Accuracy:", a * 100.0, "%")
+```
+
+## Create a Command Line Interface
+Add this code at the bottom.
+
+```python
+if sys.argv[1] == "--train":
+    train()
+elif sys.argv[1] == "--validate":
+    validate()
+```
+
+## Do Training and Validation
+Start training. This can take about 15 minutes.
+
+```
+python3 cifar_challenge.py --train
+```
+
+Then do validation.
+
+```
+python3 cifar_challenge.py --validate
+```
+
+What kind of accuracxy did you get?

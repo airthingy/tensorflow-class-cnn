@@ -13,6 +13,7 @@ def load_data():
     #Each image already has a depth of 3. We don't need to add depth
 
     #One hot encode label data
+    #CIFAR10 has 10 classes: airplane, automobile, bird, etc.
     num_classes = 10
     y_train = tf.keras.utils.to_categorical(y_train, num_classes)
     y_test = tf.keras.utils.to_categorical(y_test, num_classes)

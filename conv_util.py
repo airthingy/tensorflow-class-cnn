@@ -5,7 +5,7 @@ def weight_variable(shape):
     return tf.Variable(tf.truncated_normal(shape, stddev=0.1))
 
 def bias_variable(shape):
-  return tf.Variable(tf.ones(shape) / 10.0)
+  return tf.Variable(tf.zeros(shape))
 
 def conv_layer(input_tensor, depth, filter_size, stride):
     input_depth = input_tensor.get_shape()[3].value
@@ -27,7 +27,7 @@ def fully_connected_layer(input_tensor, num_neurons):
     input_depth = input_tensor.get_shape()[3].value
 
     #Build the fully connected layer.
-    #A fully connected layer can work with depth 1 input only.
+    #This requires flattening the input 3D tensor to a 1D vector
     #Unroll the output from the last pooling layer into a 2D matrix
     #The X is already transposed this way
     Xf = tf.reshape(input_tensor, shape=[-1, input_height * input_width * input_depth])
